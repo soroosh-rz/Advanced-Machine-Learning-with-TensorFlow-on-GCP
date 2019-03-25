@@ -10,3 +10,5 @@ https://towardsdatascience.com/how-to-extend-a-canned-tensorflow-estimator-to-ad
 Writing to BigQuery from a model:
 An example DataFlow pipeline that invokes a model and writes predictions to BigQuery
 https://github.com/GoogleCloudPlatform/training-data-analyst/blob/e98737fec58f6f7d4a0c966393528551a280759a/courses/machine_learning/deepdive/06_structured/labs/serving/pipeline/src/main/java/com/google/cloud/training/mlongcp/PubSubBigQuery.java#L101
+
+https://github.com/amygdala/code-snippets/tree/master/ml/kubeflow-pipelines
