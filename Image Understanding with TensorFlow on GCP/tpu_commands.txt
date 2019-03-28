@@ -1,0 +1,66 @@
+gcloud auth list
+
+git clone https://github.com/GoogleCloudPlatform/training-data-analyst
+
+https://storage.cloud.google.com/cloud-ml-data/img/flower_photos/train_set.csv
+https://storage.cloud.google.com/cloud-ml-data/img/flower_photos/eval_set.csv
+
+gsutil cat gs://cloud-ml-data/img/flower_photos/train_set.csv | head -5 > /tmp/input.csv
+cat /tmp/input.csv
+
+gsutil cat gs://cloud-ml-data/img/flower_photos/train_set.csv  | sed 's/,/ /g' | awk '{print $2}' | sort | uniq > /tmp/labels.txt
+cat /tmp/labels.txt
+
+cd ~/training-data-analyst/quests/tpu
+bash ./copy_resnet_files.sh 1.9
+ls mymodel/trainer
+
+https://github.com/tensorflow/tpu/tree/master/models/official/resnet
+
+export BUCKET=qwiklabs-gcp-35fc0e24be91ad73
+export PROJECT=$(gcloud config get-value project)
+echo $BUCKET $PROJECT
+
+sudo pip install 'apache-beam[gcp]'
+
+export PYTHONPATH=${PYTHONPATH}:${PWD}/mymodel
+gsutil -m rm -rf gs://${BUCKET}/tpu/resnet/data
+python -m trainer.preprocess \
+       --train_csv gs://cloud-ml-data/img/flower_photos/train_set.csv \
+       --validation_csv gs://cloud-ml-data/img/flower_photos/eval_set.csv \
+       --labels_file /tmp/labels.txt \
+       --project_id $PROJECT \
+       --output_dir gs://${BUCKET}/tpu/resnet/data
+
+
+gsutil ls gs://${BUCKET}/tpu/resnet/data
+
+bash enable_tpu_mlengine.sh
+
+TOPDIR=gs://${BUCKET}/tpu/resnet
+REGION=us-central1
+OUTDIR=${TOPDIR}/trained
+JOBNAME=imgclass_$(date -u +%y%m%d_%H%M%S)
+echo $OUTDIR $REGION $JOBNAME
+
+gsutil -m rm -rf $OUTDIR  # Comment out this line to continue training from the last time
+
+gcloud ml-engine jobs submit training $JOBNAME \
+ --region=$REGION \
+ --module-name=trainer.resnet_main \
+ --package-path=$(pwd)/mymodel/trainer \
+ --job-dir=$OUTDIR \
+ --staging-bucket=gs://$BUCKET \
+ --scale-tier=BASIC_TPU \
+ --runtime-version=1.11 \
+ -- \
+ --data_dir=${TOPDIR}/data \
+ --model_dir=${OUTDIR} \
+ --resnet_depth=18 \
+ --train_batch_size=128 --eval_batch_size=32 --skip_host_call=True \
+ --steps_per_eval=250 --train_steps=1000 \
+ --num_train_images=3300  --num_eval_images=370  --num_label_classes=5 \
+ --export_dir=${OUTDIR}/export
+
+tensorboard --logdir gs://${BUCKET}/tpu/resnet/trained --port=8080
+
