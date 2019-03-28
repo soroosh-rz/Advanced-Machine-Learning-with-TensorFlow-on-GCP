@@ -1,0 +1,22 @@
+sudo pip install google-cloud-dataflow
+sudo pip install image
+export PATH=${HOME}/.local/bin:${PATH}
+
+git clone https://github.com/GoogleCloudPlatform/cloudml-samples
+cd cloudml-samples/flowers
+
+https://storage.cloud.google.com/cloud-ml-data/img/flower_photos/train_set.csv
+https://storage.cloud.google.com/cloud-ml-data/img/flower_photos/eval_set.csv
+
+DICT_FILE=gs://cloud-ml-data/img/flower_photos/dict.txt
+PROJECT=$(gcloud config list project --format "value(core.project)")
+BUCKET="gs://${PROJECT}-flower"
+GCS_PATH="${BUCKET}/${USER}"
+
+gsutil mb $BUCKET
+python trainer/preprocess.py \
+  --input_dict "$DICT_FILE" \
+  --input_path "gs://cloud-ml-data/img/flower_photos/eval_set.csv" \
+  --output_path "${GCS_PATH}/preproc/eval" \
+  --cloud \
+  --num_workers 5
