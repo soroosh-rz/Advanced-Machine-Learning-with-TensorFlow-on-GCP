@@ -1,0 +1,29 @@
+export API_KEY=<YOUR_API_KEY>
+gsutil acl ch -u AllUsers:R gs://<YOUR-BUCKET>/*
+
+{
+  "requests": [
+      {
+        "image": {
+          "source": {
+              "gcsImageUri": "gs://my-bucket-name/cirrus.png"
+          }
+        },
+        "features": [
+          {
+            "type": "LABEL_DETECTION",
+            "maxResults": 10
+          }
+        ]
+      }
+  ]
+}
+
+curl -s -X POST -H "Content-Type: application/json" --data-binary @request.json  https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}
+
+export BUCKET=<YOUR_AUTOML_BUCKET>
+gsutil -m cp -r gs://automl-codelab-clouds/* gs://${BUCKET}
+
+gsutil cp gs://automl-codelab-metadata/data.csv .
+sed -i -e "s/placeholder/${BUCKET}/g" ./data.csv
+gsutil cp ./data.csv gs://${BUCKET}
