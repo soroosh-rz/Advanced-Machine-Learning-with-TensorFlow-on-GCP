@@ -1,2 +1,20 @@
 https://arxiv.org/pdf/1508.00092.pdf
 http://danielnouri.org/notes/2014/01/10/using-deep-learning-to-listen-for-whales/
+
+ImageNet Object Localization Challenge
+https://www.kaggle.com/c/imagenet-object-localization-challenge
+
+History of CNNs - ImageNet Challenge
+http://www.image-net.org/challenges/LSVRC/
+
+Fun with CNNs - Move Mirror
+https://experiments.withgoogle.com/move-mirror
+
+TensorFlow CNN Documentation
+https://www.tensorflow.org/tutorials/images/deep_cnn
+
+TensorFlow ResNET50
+https://www.tensorflow.org/api_docs/python/tf/keras/applications
+
+TensorFlow Using TPUs Guide
+https://www.tensorflow.org/guide/using_tpu
