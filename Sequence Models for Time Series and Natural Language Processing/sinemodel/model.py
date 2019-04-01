@@ -103,10 +103,17 @@ def rnn2_model(features, mode, params):
     cell2 = tf.nn.rnn_cell.GRUCell(N_INPUTS // 2)
     cells = tf.nn.rnn_cell.MultiRNNCell([cell1, cell2])
     outputs, state = tf.nn.dynamic_rnn(cells, x, dtype=tf.float32)
+    
     # 'state' is now a tuple containing the final state of each cell layer
     # we use state[1] below to extract the final state of the final layer
     
+    print('state: {}'.format(state))  
+    # (<tf.Tensor 'rnn/while/Exit_3:0' shape=(?, 98) dtype=float32>, <tf.Tensor 'rnn/while/Exit_4:0' shape=(?, 24) dtype=float32>)
+    print('outputs: {}'.format(outputs))
+    #  Tensor("rnn/transpose_1:0", shape=(?, 49, 24), dtype=float32)
+
     # 3. pass rnn output through a dense layer
+    print('Cells output size: {}'.format(cells.output_size)) # 24
     h1 = tf.layers.dense(state[1], cells.output_size // 2, activation=tf.nn.relu)
     predictions = tf.layers.dense(h1, 1, activation=None)  # (?, 1)
     return predictions
