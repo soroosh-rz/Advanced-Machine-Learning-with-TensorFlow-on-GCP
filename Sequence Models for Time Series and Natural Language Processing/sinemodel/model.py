@@ -71,17 +71,24 @@ def cnn_model(features, mode, params):
 
 
 def rnn_model(features, mode, params):
-    CELL_SIZE = N_INPUTS // 3  # size of the internal state in each of the cells
+    CELL_SIZE = N_INPUTS // 3  # size of the hidden/internal state in each of the cells: 49//3=16
 
     # 1. dynamic_rnn needs 3D shape: [BATCH_SIZE, N_INPUTS, 1]
+    # Here INPUT_DIM=1 that means 1 feature in a given time_step
     x = tf.reshape(features[TIMESERIES_COL], [-1, N_INPUTS, 1])
+    print('rnn model: x: {}'.format(x)) # Tensor("Reshape:0", shape=(?, 49, 1), dtype=float32) 
 
     # 2. configure the RNN
+    # outputs: activations for every given time step
+    # state: avtivation for the last time step
     cell = tf.nn.rnn_cell.GRUCell(CELL_SIZE)
-    outputs, state = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
+    outputs, state = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32) # unroll RNN
+    print('rnn model: state: {}'.format(state)) # Tensor("rnn/while/Exit_3:0", shape=(?, 16), dtype=float32)
 
     # 3. pass rnn output through a dense layer
     h1 = tf.layers.dense(state, N_INPUTS // 2, activation=tf.nn.relu)
+    print('rnn model: h1: {}'.format(h1)) # Tensor("dense/Relu:0", shape=(?, 24), dtype=float32)
+
     predictions = tf.layers.dense(h1, 1, activation=None)  # (?, 1)
     return predictions
 
