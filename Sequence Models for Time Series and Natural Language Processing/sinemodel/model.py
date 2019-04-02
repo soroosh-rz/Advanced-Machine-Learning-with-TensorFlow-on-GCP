@@ -129,12 +129,12 @@ def rnnN_model(features, mode, params):
     cell2 = tf.nn.rnn_cell.GRUCell(N_INPUTS // 2)
     cells = tf.nn.rnn_cell.MultiRNNCell([cell1, cell2])
     outputs, state = tf.nn.dynamic_rnn(cells, x, dtype=tf.float32)
-    # 'outputs' contains the state of the final layer for every time step
+    # 'outputs' contains the hidden state of the final layer for every time step (49 hidden state)
     # not just the last time step (?,N_INPUTS, final cell size)
     
     # 3. pass state for each time step through a DNN, to get a prediction
     # for each time step 
-    h1 = tf.layers.dense(outputs, cells.output_size, activation=tf.nn.relu)
+    h1 = tf.layers.dense(outputs, cells.output_size, activation=tf.nn.relu) # creating 49 equivalent DNNs
     h2 = tf.layers.dense(h1, cells.output_size // 2, activation=tf.nn.relu)
     predictions = tf.layers.dense(h2, 1, activation=None)  # (?, N_INPUTS, 1)
     predictions = tf.reshape(predictions, [-1, N_INPUTS])
