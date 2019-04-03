@@ -85,16 +85,18 @@ Create tf.estimator compatible input function
 """
 def input_fn(texts, labels, batch_size, mode):
     # Convert texts from python strings to tensors
-    x = tf.constant(texts)
+    x = tf.constant(texts)  # matrix of string tensors
 
     # Map text to sequence of word-integers and pad
-    x = vectorize_sentences(x)
+    x = vectorize_sentences(x)  # string tensors to integers
 
     # Create tf.data.Dataset from tensors
     dataset = tf.data.Dataset.from_tensor_slices((x, labels))
 
     # Pad to constant length
-    dataset = dataset.map(pad)
+    # feeds just one record at a time to the pad function
+    # Single record can be of any length
+    dataset = dataset.map(pad) 
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         num_epochs = None #loop indefinitley
@@ -115,11 +117,12 @@ Given an int tensor, remove 0s then pad to a fixed length representation.
 """
 def pad(feature, label):
     # 1. Remove 0s which represent out of vocabulary words
-    nonzero_indices = tf.where(tf.not_equal(feature, tf.zeros_like(feature)))
-    without_zeros = tf.gather(feature,nonzero_indices)
-    without_zeros = tf.squeeze(without_zeros, axis=1)
+    nonzero_indices = tf.where(tf.not_equal(feature, tf.zeros_like(feature))) # locate indices of non-zero integers
+    without_zeros = tf.gather(feature,nonzero_indices) # extract non-zero indices
+    without_zeros = tf.squeeze(without_zeros, axis=1) # to get back to the proper dimension
 
     # 2. Prepend 0s till MAX_SEQUENCE_LENGTH
+    # Eventually we are going to batch tf.dataset and if records are still a variable length we get error
     padded = tf.pad(without_zeros, [[MAX_SEQUENCE_LENGTH, 0]])  # pad out with zeros
     padded = padded[-MAX_SEQUENCE_LENGTH:]  # slice to constant length
     return (padded, label)
@@ -138,8 +141,8 @@ def vectorize_sentences(sentences):
     sentences = tf.regex_replace(sentences, '[[:punct:]]', ' ')
 
     # 2. Split string tensor into component words
-    words = tf.string_split(sentences)
-    words = tf.sparse_tensor_to_dense(words, default_value=PADWORD)
+    words = tf.string_split(sentences) # splits sentence tensors into word tensors, returns a sparce represntation
+    words = tf.sparse_tensor_to_dense(words, default_value=PADWORD) # pad to the length of longest record
 
     # 3. Map each word to respective integer
     table = tf.contrib.lookup.index_table_from_file(
